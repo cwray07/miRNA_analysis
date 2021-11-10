@@ -15,10 +15,25 @@ RNA was isolated using [Norgen Plasma/Serum Circulating and Exosomal RNA Purific
 
 ## Post-Sequencing QC
 
-Post-sequencing we were provided with FASTQ files to which we applied multi-fastQC which showed adapter contamination. 
+Post-sequencing we were provided with FASTQ files to which we applied multi-fastQC which was generally fine but showed adapter contamination. 
 ![fastqc_per_sequence_quality_scores_plot](https://user-images.githubusercontent.com/75036690/141108457-dd6352d7-a638-44ad-a47e-b98fa1a39c36.png)
 ![fastqc_adapter_content_plot](https://user-images.githubusercontent.com/75036690/141108491-423a627b-b91c-4482-8130-0d96e841ebd6.png)
 
 Therefore we trimmed the adapters using [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) - This was carried out on the Queen's HPC [Kelvin](https://www.qub.ac.uk/directorates/InformationServices/Services/HighPerformanceComputing/) using the following code: 
 
+```
+java -jar <path_to_trimmomatic.jar> SE <name_of_fastq_to_be_trimmed> <name_for_trimmed_file.fastq.gz> ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 -trimlog <name_of_trimlog_file>
+```
+
+Illummina adapters are built in to trimmomatic and so don't need to be specified beyond ILLUMINACLIP:TruSeq3 but for trimming other adapters, a path to a fasta file containing the adapter sequences must be specified - see [Trimmomatic Manual](http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf) for full details. 
+
+Post trimming the FastQ files looked much better in terms of adapter contamination 
+
+![LrQjhyz](https://user-images.githubusercontent.com/75036690/141110331-a4d58153-cb36-43c1-a0bc-58161e957112.png)
+
+But the sequence length distributions were concerning, seeing as we're looking for miRNAs, which should be ~20-25nts in length
+
+![fastqc_sequence_length_distribution_plot (3)](https://user-images.githubusercontent.com/75036690/141110479-ae2d5a29-c0be-4602-8b68-20259c2fc9fa.png)
+
+Peaks at 42 and 60/62 NT is not what we would want to be seeing! FastQC does not check for every single adapter and as it turns out the Qiagen Adapter used during library prep has not yet been removed. This is slightly more complicated as we need to provide Trimmomatic with a FASTA file containing the qiagen adapter sequence. 
 
