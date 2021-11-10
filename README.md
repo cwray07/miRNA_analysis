@@ -25,7 +25,7 @@ Therefore we trimmed the adapters using [Trimmomatic](http://www.usadellab.org/c
 java -jar <path_to_trimmomatic.jar> SE <name_of_fastq_to_be_trimmed> <name_for_trimmed_file.fastq.gz> ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 -trimlog <name_of_trimlog_file>
 ```
 
-Illummina adapters are built in to trimmomatic and so don't need to be specified beyond ILLUMINACLIP:TruSeq3 but for trimming other adapters, a path to a fasta file containing the adapter sequences must be specified - see [Trimmomatic Manual](http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf) for full details. 
+Illummina adapters are built in to trimmomatic and so don't need to be specified beyond ILLUMINACLIP:TruSeq3-SE but for trimming other adapters, a path to a fasta file containing the adapter sequences must be specified - see [Trimmomatic Manual](http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf) for full details. 
 
 Post trimming the FastQ files looked much better in terms of adapter contamination 
 
@@ -37,10 +37,17 @@ But the sequence length distributions were concerning, seeing as we're looking f
 
 Peaks at 42 and 60/62 NT is not what we would want to be seeing! FastQC does not check for every single adapter and as it turns out the Qiagen Adapter used during library prep has not yet been removed. This is slightly more complicated as we need to provide Trimmomatic with a FASTA file containing the qiagen adapter sequence. 
 
-A fasta file is simply a text file containing sequence data - for each sequence there is a header/title/identifier line 
+A fasta file is simply a text file containing sequence data - for each sequence there is a header/title/identifier line starting with a greater than symbol (>) with subsequent lines containing sequence data. When opening in nano file editor, the fasta file for the Qiagen adapter looks like this:
 
+![Screenshot from 2021-11-10 15-45-30](https://user-images.githubusercontent.com/75036690/141145113-c0dbe704-14a7-43a0-a10b-7fb97aaf5355.png)
 
+Now the following code I use _works_ but I'm confident it's not the way it was intended to be used - Basically I removed the "TruSeq3-SE" section and replaced it with the file name (in the same working directory) of the fasta file containing the qiagen adapter, giving the following code: 
+
+```
+java -jar <path_to_trimmomatic.jar> SE <name_of_fastq_to_be_trimmed> <name_for_trimmed_file.fastq.gz> ILLUMINACLIP:qiagen_3\'_adapter.fasta:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 -trimlog <name_of_trimlog_file>
+```
+The only thing that's changed here is adding 'qiagen_3\\'\_adapter.fasta' where before it stated TruSeq3-SE. Note the use of the backslash before the apostrophe - this is an escape character that essentially tells the computer that the ' is not the start of a quote or anything else but is simply part of the file name. You can read up on escape characters [here](https://en.wikipedia.org/wiki/Escape_character)
 
 ## A quick note...
 
-To save you from great frustration and time loss, I recommend running the below line of code on every single fasta/fastq file that miRDeep2 will be using - including your unindexed genomes prior to indexing with bowtie... miRDeep2 HATES white space - even white space that I'm 99% sure doesn't exist... but nethertheless this line of code will find any whitespace and replace it with a "\_" and even 
+To save you from great frustration and time loss, I recommend running the below line of code on every single fasta/fastq file that miRDeep2 will be using - including your un-indexed genomes prior to indexing with bowtie... miRDeep2 HATES white space - even white space that I'm 99% sure doesn't exist... but nevertheless this line of code will find any white-space and replace it with a "\_" and even if there is none it will ensure miRDeep doesn't shout at you a later time - it's important to do this now as if you do it post mapping then you'll have to restart from the beginning (i.e. exactly what happened to me)
