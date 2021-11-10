@@ -37,3 +37,10 @@ But the sequence length distributions were concerning, seeing as we're looking f
 
 Peaks at 42 and 60/62 NT is not what we would want to be seeing! FastQC does not check for every single adapter and as it turns out the Qiagen Adapter used during library prep has not yet been removed. This is slightly more complicated as we need to provide Trimmomatic with a FASTA file containing the qiagen adapter sequence. 
 
+A fasta file is simply a text file containing sequence data - for each sequence there is a header/title/identifier line 
+
+
+
+## A quick note...
+
+To save you from great frustration and time loss, I recommend running the below line of code on every single fasta/fastq file that miRDeep2 will be using - including your unindexed genomes prior to indexing with bowtie... miRDeep2 HATES white space - even white space that I'm 99% sure doesn't exist... but nethertheless this line of code will find any whitespace and replace it with a "\_" and even 
