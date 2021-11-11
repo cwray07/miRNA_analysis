@@ -13,13 +13,44 @@ RNA was isolated from 9 serum samples, collected from sheep experimentally infec
 RNA was isolated using [Norgen Plasma/Serum Circulating and Exosomal RNA Purification Kit (Slurry Format)](https://norgenbiotek.com/product/plasmaserum-circulating-and-exosomal-rna-purification-kit-slurry-format) before pre-sequencing quality control was carried out by the [Genomics CTU](https://www.qub.ac.uk/sites/core-technology-units/Genomics/) - No issues were flagged so we continued with sequencing. Following on from this the Genomics CTU completed library prep using a [QIAseq miRNA Library Kit
 ](https://www.qiagen.com/us/products/discovery-and-translational-research/next-generation-sequencing/metagenomics/qiaseq-mirna-ngs/) prior to sequencing with an Illumina NGS system. 
 
+## Log in to Kelvin
+
+After generating your SSH key pair and getting it authenticated by the kelvin staff you should be able to log in remotely to kelvin using the following line in your terminal:
+
+```
+ssh –p 55890 –i <path_to_kelvin_key> <queens_numbers>@login.kelvin.alces.network
+```
+
+
+Before running FASTQC or anything really please ensure you are in an interactive node or else you'll piss everyone at kelvin HQ off bigtime - see [training docs](https://gitlab.qub.ac.uk/qub_hpc/kelvin_training) and [FAQs](https://gitlab.qub.ac.uk/qub_hpc/faq/-/tree/master) for details. As long as you remember to basically never do anything (for example indexing a genome or running a script) within the log in node you'll be grand. Also consider things like the amount of memory you'd like to request depending on the task you're doing - fastqc won't need much but bowtie and mirdeep will need much more.
+
 ## Post-Sequencing QC
 
 Post-sequencing we were provided with FASTQ files to which we applied multi-fastQC which was generally fine but showed adapter contamination. 
 ![fastqc_per_sequence_quality_scores_plot](https://user-images.githubusercontent.com/75036690/141108457-dd6352d7-a638-44ad-a47e-b98fa1a39c36.png)
 ![fastqc_adapter_content_plot](https://user-images.githubusercontent.com/75036690/141108491-423a627b-b91c-4482-8130-0d96e841ebd6.png)
 
-Therefore we trimmed the adapters using [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) - This was carried out on the Queen's HPC [Kelvin](https://www.qub.ac.uk/directorates/InformationServices/Services/HighPerformanceComputing/) using the following code: 
+To use FastQC in kelvin you can find the module using 
+
+```
+module avail
+```
+
+load it using 
+
+```
+module load <module>
+```
+
+and run FASTQC by entering
+
+```
+fastqc <fastq_file>
+```
+
+The output will be a couple of different files including a html doc with the results and all relevant figures needed to asses the next steps (as seen above). You can download the files onto your own computer either by using scp (secure copy - see kelvin training docs) or through a third party app such as [filezilla](https://filezilla-project.org/). 
+
+We trimmed the adapters using [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) - This was carried out on the Queen's HPC [Kelvin](https://www.qub.ac.uk/directorates/InformationServices/Services/HighPerformanceComputing/) using the following code: 
 
 ```
 java -jar <path_to_trimmomatic.jar> SE <name_of_fastq_to_be_trimmed> <name_for_trimmed_file.fastq.gz> ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 -trimlog <name_of_trimlog_file>
@@ -56,13 +87,13 @@ Note that we have a peak around 30bp - this could be [piRNA](https://en.wikipedi
 
 ## A quick note...
 
-To save you from great frustration and time loss, I recommend running the below line of code on every single fasta/fastq file that miRDeep2 will be using - including your un-indexed genomes prior to indexing with bowtie... miRDeep2 HATES white space - even white space that I'm 99% sure doesn't exist... but nevertheless this line of code will find any white-space and replace it with a "\_" and even if there is none it will ensure miRDeep doesn't shout at you a later time - it's important to do this now as if you do it post mapping then you'll have to restart from the beginning (i.e. exactly what happened to me). Please ensure you are in an interactive nodle or else you'll piss everyone at kelvin HQ off bigtime - see [training docs](https://gitlab.qub.ac.uk/qub_hpc/kelvin_training) and [FAQs](https://gitlab.qub.ac.uk/qub_hpc/faq/-/tree/master) for details. As long as you remember to basically never do anything (for example indexing a genome or running a script) within the log in node you'll be grand. 
+To save you from great frustration and time loss, I recommend running the below line of code on every single fasta/fastq file that miRDeep2 will be using - including your un-indexed genomes prior to indexing with bowtie... miRDeep2 HATES white space - even white space that I'm 99% sure doesn't exist... but nevertheless this line of code will find any white-space and replace it with a "\_" and even if there is none it will ensure miRDeep doesn't shout at you a later time - it's important to do this now as if you do it post mapping then you'll have to restart from the beginning (i.e. exactly what happened to me). 
 
 ```
 module load bbtools/38.63
 reformat.sh in=<genome.fa> out=<newname_genome.fa> underscore
 ```
-Note, this can be used on any fasta file - For example later on you'll need some miRNA reference files from miRBase - these are rife with both real and imaginary white-space so run this code on them before using to avoid the wratch of miRDeep.
+Note, this can (and should) be used on any fasta file, not just genomes - For example later on you'll need some miRNA reference files from miRBase - these are rife with both real and imaginary white-space so run this code on them before using to avoid the wratch of miRDeep.
 Second Note. **module load** is how you load modules in kelvin (amazing I know). other useful ones are **module avail** which lists all modules you can activate (very useful for ones with weird names that you can't remember) and **module unload** which does what it says on the tin - you'll be using this later also to get around a pesky perl error.
 
 ## Genome downloads and indexing
@@ -72,7 +103,7 @@ Now that we have trimmed fastq files, we need download genomes for our species o
 SSH your way into your kelvin account and navigate to your scratch space with:
 
 ```
-cd /mnt/scratch2/users/<queens_num>. 
+cd /mnt/scratch2/users/<queens_num>
 ```
 
 This is where you should have already stored your fastq files (now trimmed) but if not you can mv them here with:
@@ -103,4 +134,22 @@ The genome will probably be with a .gz extension and needs to be unzipped using 
 
 ```
 gunzip genome.fa
+```
+
+Next you'll need to load [bowtie](http://bowtie-bio.sourceforge.net/manual.shtml) which contains a command that allows you to index a genome - this is essential as miRDeep requires an indexed genome for mapping your reads (the next step). You can think of indexing as somewhat analagous to indexing a book - if you know the area within a book a certain setion topic of interest is, you'll find it much quicker than just searching through the whole thing - the same logic applies to certain sequences and an indexed genome, allowing you to narrow down the area to be searched.
+
+Find the module for bowtie within kelvin using module avail - note that there will be a few different versions, we want bowtie NOT bowtie2. 
+
+Once you've found the module load it then you can index your genomes with the following code:
+
+```
+bowtie-build <genome.fa> <name_for_indexed_genome>
+```
+
+This will probably take quite a while so you can leave it running if you're in an interactive node or simply wait for it to finish if you've submitted via SLURM (see kelvin training docs)
+
+The output will be a set of 6 files with suffixes .1.ebwt, .2.ebwt, .3.ebwt, .4.ebwt, .rev.1.ebwt, and .rev.2.ebwt.
+
+## miRDeep Mapper
+
 
