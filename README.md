@@ -48,6 +48,12 @@ java -jar <path_to_trimmomatic.jar> SE <name_of_fastq_to_be_trimmed> <name_for_t
 ```
 The only thing that's changed here is adding 'qiagen_3\\'\_adapter.fasta' where before it stated TruSeq3-SE. Note the use of the backslash before the apostrophe - this is an escape character that essentially tells the computer that the ' is not the start of a quote or anything else but is simply part of the file name. You can read up on escape characters [here](https://en.wikipedia.org/wiki/Escape_character)
 
+So now if we run fastqc we can see the distribution is much nicer
+
+![msedge_9SzgVkXphp](https://user-images.githubusercontent.com/75036690/141295713-83cdc489-4c10-4a34-9c2d-2920bbb9bf22.png)
+
+Note that we have a peak around 30bp - this could be [piRNA](https://en.wikipedia.org/wiki/Piwi-interacting_RNA), another form of small RNA which is known to have peaks around this length but for now we'll be focusing on miRNAs
+
 ## A quick note...
 
 To save you from great frustration and time loss, I recommend running the below line of code on every single fasta/fastq file that miRDeep2 will be using - including your un-indexed genomes prior to indexing with bowtie... miRDeep2 HATES white space - even white space that I'm 99% sure doesn't exist... but nevertheless this line of code will find any white-space and replace it with a "\_" and even if there is none it will ensure miRDeep doesn't shout at you a later time - it's important to do this now as if you do it post mapping then you'll have to restart from the beginning (i.e. exactly what happened to me). Please ensure you are in an interactive nodle or else you'll piss everyone at kelvin HQ off bigtime - see [training docs](https://gitlab.qub.ac.uk/qub_hpc/kelvin_training) and [FAQs](https://gitlab.qub.ac.uk/qub_hpc/faq/-/tree/master) for details. As long as you remember to basically never do anything (for example indexing a genome or running a script) within the log in node you'll be grand. 
@@ -58,3 +64,33 @@ reformat.sh in=<genome.fa> out=<newname_genome.fa> underscore
 ```
 Note, this can be used on any fasta file - For example later on you'll need some miRNA reference files from miRBase - these are rife with both real and imaginary white-space so run this code on them before using to avoid the wratch of miRDeep.
 Second Note. **module load** is how you load modules in kelvin (amazing I know). other useful ones are **module avail** which lists all modules you can activate (very useful for ones with weird names that you can't remember) and **module unload** which does what it says on the tin - you'll be using this later also to get around a pesky perl error.
+
+## Genome downloads and indexing
+
+Now that we have trimmed fastq files, we need download genomes for our species of interest - in this case the Sheep (_Ovis aries_) and the liver fluke (_Fasciola hepatica_). We can find these easily enough - for mammal genomes you can download them from [NCBI FTP site](https://ftp.ncbi.nih.gov/genomes/) (see the README files for details on which genomes to download and where to find them) and for parasites you can get them from [WormBase ParaSite](https://parasite.wormbase.org/ftp.html). Rather than downloading them to your laptop and uploading them to kelvin it's best to download them straight into your scratch space.
+
+SSH your way into your kelvin account and navigate to your scratch space with:
+
+```
+cd /mnt/scratch2/users/<queens_num>. 
+```
+
+This is where you should have already stored your fastq files (now trimmed) but if not you can mv them here with:
+
+``` 
+mv <fastq_file> <destination path>
+```
+
+mv can also be used to rename files if instead of providing a different directory for the second option you provide a new filename. You could also move all your fastQ files at once by typing:
+
+``` 
+mv *.fq <destination path>
+```
+
+check the extension of your files is .fq as it may be .fasta, .fa, .fastq or .gz if it's compressed. Another small tip - if you put the text before the * then the function will be applied to any file that STARTS with the specified characthers rather than ends with. For example, if you wanted to move all files that started with "Sample_1"
+
+```
+mv Sample_1* <destination_path>
+```
+
+But anyway back to 
