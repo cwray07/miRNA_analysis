@@ -93,4 +93,14 @@ check the extension of your files is .fq as it may be .fasta, .fa, .fastq or .gz
 mv Sample_1* <destination_path>
 ```
 
-But anyway back to 
+But anyway back to downloading genomes... once you've found the link for your genome of interest right click and copy the link then you can use wget to download it into your current working directory
+
+```
+wget <link_to_genome>
+```
+
+The genome will probably be with a .gz extension and needs to be unzipped using gunzip, easy as: 
+
+```
+gunzip genome.fa
+
