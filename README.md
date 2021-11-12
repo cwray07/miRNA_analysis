@@ -22,7 +22,7 @@ ssh –p 55890 –i <path_to_kelvin_key> <queens_numbers>@login.kelvin.alces.net
 ```
 
 
-Before running FASTQC or anything really please ensure you are in an interactive node or else you'll piss everyone at kelvin HQ off bigtime - see [training docs](https://gitlab.qub.ac.uk/qub_hpc/kelvin_training) and [FAQs](https://gitlab.qub.ac.uk/qub_hpc/faq/-/tree/master) for details. As long as you remember to basically never do anything (for example indexing a genome or running a script) within the log in node you'll be grand. Also consider things like the amount of memory you'd like to request depending on the task you're doing - fastqc won't need much but bowtie and mirdeep will need much more.
+Before running FASTQC or anything really please ensure you are in an interactive node or else you'll piss everyone at kelvin HQ off bigtime - see [training docs](https://gitlab.qub.ac.uk/qub_hpc/kelvin_training) and [FAQs](https://gitlab.qub.ac.uk/qub_hpc/faq/-/tree/master) for details. As long as you remember to basically never do anything (for example indexing a genome or running a script) within the log in node you'll be grand - Submitting a job via slurm IS done from the login node (see training docs). Also consider things like the amount of memory you'd like to request depending on the task you're doing - fastqc won't need much but bowtie and mirdeep will need much more.
 
 ## Post-Sequencing QC
 
@@ -56,7 +56,9 @@ We trimmed the adapters using [Trimmomatic](http://www.usadellab.org/cms/?page=t
 java -jar <path_to_trimmomatic.jar> SE <name_of_fastq_to_be_trimmed> <name_for_trimmed_file.fastq.gz> ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 -trimlog <name_of_trimlog_file>
 ```
 
-Illummina adapters are built in to trimmomatic and so don't need to be specified beyond ILLUMINACLIP:TruSeq3-SE but for trimming other adapters, a path to a fasta file containing the adapter sequences must be specified - see [Trimmomatic Manual](http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf) for full details. 
+Note - Trimmomatic isn't available as a module within kelvin and so can't be loaded in the same way BUT you don't have permission to install new modules, so what can we do? We can get everything we need using wget then simply unzip and run - see [here](https://www.goseqit.com/wp-content/uploads/2018/11/Trimmomatic_tutorial-3.pdf) for details.
+
+Illummina adapters are built in to trimmomatic and so don't need to be specified beyond ILLUMINACLIP:TruSeq3-E but for trimming other adapters, a path to a fasta file containing the adapter sequences must be specified - see [Trimmomatic Manual](http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf) for full details. 
 
 Post trimming the FastQ files looked much better in terms of adapter contamination 
 
@@ -98,7 +100,7 @@ Second Note. **module load** is how you load modules in kelvin (amazing I know).
 
 ## Genome downloads and indexing
 
-Now that we have trimmed fastq files, we need download genomes for our species of interest - in this case the Sheep (_Ovis aries_) and the liver fluke (_Fasciola hepatica_). We can find these easily enough - for mammal genomes you can download them from [NCBI FTP site](https://ftp.ncbi.nih.gov/genomes/) (see the README files for details on which genomes to download and where to find them) and for parasites you can get them from [WormBase ParaSite](https://parasite.wormbase.org/ftp.html). Rather than downloading them to your laptop and uploading them to kelvin it's best to download them straight into your scratch space.
+Now that we have trimmed fastq files, we need download genomes for our species of interest - in this case the Sheep (_Ovis aries_) and the liver fluke (_Fasciola hepatica_). We can find these easily enough - for mammal genomes you can download them from [Ensembl](http://www.ensembl.org/info/data/index.html) and for parasites you can get them from [WormBase ParaSite](https://parasite.wormbase.org/ftp.html). Rather than downloading them to your laptop and uploading them to kelvin it's best to download them straight into your scratch space.
 
 SSH your way into your kelvin account and navigate to your scratch space with:
 
@@ -133,7 +135,7 @@ wget <link_to_genome>
 The genome will probably be with a .gz extension and needs to be unzipped using gunzip, easy as: 
 
 ```
-gunzip genome.fa
+gunzip genome
 ```
 
 Next you'll need to load [bowtie](http://bowtie-bio.sourceforge.net/manual.shtml) which contains a command that allows you to index a genome - this is essential as miRDeep requires an indexed genome for mapping your reads (the next step). You can think of indexing as somewhat analagous to indexing a book - if you know the area within a book a certain setion topic of interest is, you'll find it much quicker than just searching through the whole thing - the same logic applies to certain sequences and an indexed genome, allowing you to narrow down the area to be searched.
@@ -146,10 +148,18 @@ Once you've found the module load it then you can index your genomes with the fo
 bowtie-build <genome.fa> <name_for_indexed_genome>
 ```
 
-This will probably take quite a while so you can leave it running if you're in an interactive node or simply wait for it to finish if you've submitted via SLURM (see kelvin training docs)
+Your name for indexed genome does not need a file extension, this will be applied automaticlly. This will probably take quite a while so you can leave it running if you're in an interactive node or simply wait for it to finish if you've submitted via SLURM (see kelvin training docs)
 
 The output will be a set of 6 files with suffixes .1.ebwt, .2.ebwt, .3.ebwt, .4.ebwt, .rev.1.ebwt, and .rev.2.ebwt.
 
 ## miRDeep Mapper
 
+Now that we have trimmed fastq files and indexed genomes we can map our reads to the indexed genomes using [miRDeep2](https://www.mdc-berlin.de/content/mirdeep2-documentation). Firstly you'll need to load the miRDeep2 module so find it using module avail and load it with module load. Then apply the following code:
 
+```
+mapper.pl <trimmed_fastq> -e -h -m -p <index_genome> -s <processed_reads_name.fa> -t <mapping_output_name.arf> -v
+```
+
+There are a lot of options here! Heres what they mean: -e=fastq input file, -h=parse fastq to fasta, -m=collapse reads, -p=defines the genome file (pre-indexed by bowtie-build), -s=print processed reads to this file, t=print read mappings to this file, v=outputs progress report
+
+For your indexed genome, you'll remember there are 6 different files associated with this - provide the string before the file extension i.e. if your indexed genome contains files like worm.1.ebwt then you would just provide worm for the index_genome option.
