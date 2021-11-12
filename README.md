@@ -163,3 +163,30 @@ mapper.pl <trimmed_fastq> -e -h -m -p <index_genome> -s <processed_reads_name.fa
 There are a lot of options here! Heres what they mean: -e=fastq input file, -h=parse fastq to fasta, -m=collapse reads, -p=defines the genome file (pre-indexed by bowtie-build), -s=print processed reads to this file, t=print read mappings to this file, v=outputs progress report
 
 For your indexed genome, you'll remember there are 6 different files associated with this - provide the string before the file extension i.e. if your indexed genome contains files like worm.1.ebwt then you would just provide worm for the index_genome option.
+
+The output of this should be processed reads file with the .fa extension and a mapping file with the .arf extension - you'll need both for next step.
+
+## Almost there!
+
+We almost have everything we need for our final step within kelvin but we need to get some miRNA reference files from [miRBase](https://www.mirbase.org/) - This won't change how the files are analysed but it will label any 'known' miRNAs from your species of interest that pop up and will show similar miRNAs from other species too. You'll need to download both the mature miRNA sequences for all files from the download page and those for your species of interest (from the browse page navigate to your species, make sure to select mature sequences not stem-loop, output format unalligned fasta then select all and fetch sequences - copy and paste this into an empty notepad text file and save it with a .fa/.fasta extension)
+
+Upload the files to your working directory using SCP or your 3rd party app and don't forget to run the 'white space' code on these files too! 
+
+now you can run the miRDeep.pl module... or so I thought anyway but when I was at this stage I started to have a bunch of random perl errors thrown at me... this was the cause of immense frustration but I figured out how to get past it with good old trial and error, so to save your sanity do the following:
+
+```
+module unload apps/python3/3.4.3/gcc-4.8.5 
+module load ViennaRNA/2.4.14
+```
+
+Don't ask me to explain exactly why this works but it's something to do with previously loaded modules bringing along dependencies that for whatever reason are a version that makes miRDeep.pl throw a fit and refuse to do anything. 
+
+Now that the miRDeep gods have been appeased through ritual frustration we can continue, run the following line of code:
+
+```
+miRDeep2.pl <processed_reads.fa> <genome.fa> <.arf file> <miRBase_mature_miRNAs.fa> <related_species_miRNAs.fa> none
+```
+
+NOTE the genome file is NOT the indexed one but instead the original one. This will again take a while to run (especially when it starts doing randfold stuff) but when it's finished you'll have both HTML and CSV files containing your results! 
+
+
