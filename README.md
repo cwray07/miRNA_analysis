@@ -48,7 +48,7 @@ and run FASTQC by entering
 fastqc <fastq_file>
 ```
 
-The output will be a couple of different files including a html doc with the results and all relevant figures needed to asses the next steps (as seen above). You can download the files onto your own computer either by using scp (secure copy - see kelvin training docs) or through a third party app such as [filezilla](https://filezilla-project.org/). 
+The output will be a couple of different files including a html doc with the results and all relevant figures needed to assess the next steps (as seen above). You can download the files onto your own computer either by using scp (secure copy - see kelvin training docs) or through a third party app such as [filezilla](https://filezilla-project.org/). 
 
 We trimmed the adapters using [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) - This was carried out on the Queen's HPC [Kelvin](https://www.qub.ac.uk/directorates/InformationServices/Services/HighPerformanceComputing/) using the following code: 
 
@@ -58,7 +58,7 @@ java -jar <path_to_trimmomatic.jar> SE <name_of_fastq_to_be_trimmed> <name_for_t
 
 Note - Trimmomatic isn't available as a module within kelvin and so can't be loaded in the same way BUT you don't have permission to install new modules, so what can we do? We can get everything we need using wget then simply unzip and run - see [here](https://www.goseqit.com/wp-content/uploads/2018/11/Trimmomatic_tutorial-3.pdf) for details.
 
-Illummina adapters are built in to trimmomatic and so don't need to be specified beyond ILLUMINACLIP:TruSeq3-E but for trimming other adapters, a path to a fasta file containing the adapter sequences must be specified - see [Trimmomatic Manual](http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf) for full details. 
+Most Illummina adapters are built in to trimmomatic and so don't need to be specified beyond ILLUMINACLIP:TruSeq3-E but for trimming other adapters, a path to a fasta file containing the adapter sequences must be specified - see [Trimmomatic Manual](http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf) for full details. 
 
 Post trimming the FastQ files looked much better in terms of adapter contamination 
 
@@ -96,7 +96,7 @@ module load bbtools/38.63
 reformat.sh in=<genome.fa> out=<newname_genome.fa> underscore
 ```
 Note, this can (and should) be used on any fasta file, not just genomes - For example later on you'll need some miRNA reference files from miRBase - these are rife with both real and imaginary white-space so run this code on them before using to avoid the wratch of miRDeep.
-Second Note. **module load** is how you load modules in kelvin (amazing I know). other useful ones are **module avail** which lists all modules you can activate (very useful for ones with weird names that you can't remember) and **module unload** which does what it says on the tin - you'll be using this later also to get around a pesky perl error.
+Second Note. We used some commands earlier to egt FASTQC running, these are really essential for doing basically anything in kelvin. Detailed info is available in the training docs but to sum -  **module load** is how you load modules in kelvin (amazing I know), other useful ones are **module avail** which lists all modules you can activate (very useful for ones with weird names that you can't remember) and **module unload** which does what it says on the tin - you'll be using this later also to get around a pesky perl error.
 
 ## Genome downloads and indexing
 
@@ -188,5 +188,13 @@ miRDeep2.pl <processed_reads.fa> <genome.fa> <.arf file> <miRBase_mature_miRNAs.
 ```
 
 NOTE the genome file is NOT the indexed one but instead the original one. This will again take a while to run (especially when it starts doing randfold stuff) but when it's finished you'll have both HTML and CSV files containing your results! 
+
+## We have data! 
+
+At this point if all is well you should have the final output from kelvin - there will be a few files associated with each run (a .bed file, a .csv file and a .html file) - the csv or html is a good way of looking intiially to see what you've got. The top of your html file will look like this: 
+
+![msedge_YePJjGiug4](https://user-images.githubusercontent.com/75036690/141780708-427d6bab-725e-495b-b4ca-e270955f084a.png)
+
+This is a summary of the results - The miRDeep docs aren't very good IMO but you can read them [here]() as well as their publication [here](). If you can explain to me exactly what the miRDeep score means, beyond 'higher good, lower bad' I'll be very impressed. 
 
 
