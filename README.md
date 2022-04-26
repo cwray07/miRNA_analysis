@@ -85,7 +85,7 @@ So now if we run fastqc we can see the distribution is much nicer
 
 ![msedge_9SzgVkXphp](https://user-images.githubusercontent.com/75036690/141295713-83cdc489-4c10-4a34-9c2d-2920bbb9bf22.png)
 
-Note that we have a peak around 30bp - this could be [piRNA](https://en.wikipedia.org/wiki/Piwi-interacting_RNA), another form of small RNA which is known to have peaks around this length but for now we'll be focusing on miRNAs
+Note that we have a peak around 30bp - this could be [piRNA](https://en.wikipedia.org/wiki/Piwi-interacting_RNA), another form of small RNA which is known to have peaks around this length or just tRNA fragments but for now we'll be focusing on miRNAs
 
 ## A quick note...
 
@@ -96,11 +96,11 @@ module load bbtools/38.63
 reformat.sh in=<genome.fa> out=<newname_genome.fa> underscore
 ```
 Note, this can (and should) be used on any fasta file, not just genomes - For example later on you'll need some miRNA reference files from miRBase - these are rife with both real and imaginary white-space so run this code on them before using to avoid the wratch of miRDeep.
-Second Note. We used some commands earlier to egt FASTQC running, these are really essential for doing basically anything in kelvin. Detailed info is available in the training docs but to sum -  **module load** is how you load modules in kelvin (amazing I know), other useful ones are **module avail** which lists all modules you can activate (very useful for ones with weird names that you can't remember) and **module unload** which does what it says on the tin - you'll be using this later also to get around a pesky perl error.
+Second Note. We used some commands earlier to get FASTQC running, these are really essential for doing basically anything in kelvin. Detailed info is available in the training docs but to sum -  **module load** is how you load modules in kelvin (amazing I know), other useful ones are **module avail** which lists all modules you can activate (very useful for ones with weird names that you can't remember) and **module unload** which does what it says on the tin - you'll be using this later also to get around a pesky perl error.
 
 ## Genome downloads and indexing
 
-Now that we have trimmed fastq files, we need download genomes for our species of interest - in this case the Sheep (_Ovis aries_) and the liver fluke (_Fasciola hepatica_). We can find these easily enough - for mammal genomes you can download them from [Ensembl](http://www.ensembl.org/info/data/index.html) and for parasites you can get them from [WormBase ParaSite](https://parasite.wormbase.org/ftp.html). Rather than downloading them to your laptop and uploading them to kelvin it's best to download them straight into your scratch space.
+Now that we have trimmed fastq files, we need to download genomes for our species of interest - in this case the Sheep (_Ovis aries_) and the liver fluke (_Fasciola hepatica_). We can find these easily enough - for mammal genomes you can download them from [Ensembl](http://www.ensembl.org/info/data/index.html) and for parasites you can get them from [WormBase ParaSite](https://parasite.wormbase.org/ftp.html). Rather than downloading them to your laptop and uploading them to kelvin it's best to download them straight into your scratch space.
 
 SSH your way into your kelvin account and navigate to your scratch space with:
 
